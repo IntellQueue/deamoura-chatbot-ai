@@ -243,14 +243,17 @@ function ShopContent() {
           <p className="text-xs text-primary-foreground/60">
             &copy; {new Date().getFullYear()} de.amoura.
           </p>
-          <Link href="/2736fab291f04e69b62d490c3c09361f5b82461a">
-            <button 
-              className="absolute right-0 top-6 p-2 text-white/10 hover:text-white transition-colors"
-              title="Admin Login"
-            >
-              <Lock className="w-3 h-3" />
-            </button>
-          </Link>
+          <button 
+            onClick={() => {
+              document.cookie = "akses_rahasia=true; path=/";
+              // Arahkan ke URL "Topeng"
+              window.location.href = '/2736fab291f04e69b62d490c3c09361f5b82461a'; 
+            }}
+            className="absolute right-0 top-6 p-2 text-white/10 hover:text-white transition-colors"
+            title="Admin Login"
+          >
+            <Lock className="w-3 h-3" />
+          </button>
         </div>
       </div>
       

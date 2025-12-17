@@ -16,16 +16,23 @@ export default function AdminLayout({
   const [isAuth, setIsAuth] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
+<<<<<<< HEAD
   // PASTIKAN INI SESUAI dengan URL login kamu di browser.
   // Kalau URL loginmu adalah localhost:3000/login, biarkan '/login'.
   // Kalau URL loginmu localhost:3000/admin-login, ganti jadi '/admin-login'.
   const isLoginPage = pathname === '/login' || pathname === '/admin-login'; 
+=======
+  // Cek apakah user sedang berada di halaman login
+  // Sesuaikan '/login' ini dengan URL halaman login admin kamu
+  // Cek apakah user sedang berada di halaman login (URL Hash atau /login internal)
+  const isLoginPage = pathname === '/login' || pathname === '/2736fab291f04e69b62d490c3c09361f5b82461a';
+>>>>>>> 7a142fd8f98bfddb0482494a5976b1d41b56a515
 
   useEffect(() => {
     // Kalau sedang di halaman login, tidak perlu cek auth
     if (isLoginPage) {
-        setIsLoading(false);
-        return;
+      setIsLoading(false);
+      return;
     }
 
     const checkAuth = async () => {
@@ -43,6 +50,7 @@ export default function AdminLayout({
         if (res.ok) {
           setIsAuth(true)
         } else {
+<<<<<<< HEAD
           // Token tidak valid/expired
           console.log("Auth check failed (401), redirecting to login...")
           router.push('/login') 
@@ -51,6 +59,13 @@ export default function AdminLayout({
         console.error('Auth check error (Network/Server down)', e)
         // Jangan langsung redirect jika error jaringan, tapi opsional:
         router.push('/login')
+=======
+          router.push('/') // Lempar ke Home kalau belum auth (Middleware akan blok /login langsung)
+        }
+      } catch (e) {
+        console.error('Auth check failed', e)
+        router.push('/')
+>>>>>>> 7a142fd8f98bfddb0482494a5976b1d41b56a515
       } finally {
         setIsLoading(false)
       }
@@ -59,6 +74,7 @@ export default function AdminLayout({
     checkAuth()
   }, [router, isLoginPage])
 
+<<<<<<< HEAD
   const handleLogout = async () => {
     try {
         // Panggil API Logout supaya server menghapus cookie juga
@@ -74,6 +90,15 @@ export default function AdminLayout({
         // Tetap paksa keluar
         router.push('/login');
     }
+=======
+  const handleLogout = () => {
+    // Hapus Token Admin & Tiket Rahasia (Biar pintu kekunci lagi)
+    document.cookie = 'admin_token=; path=/; max-age=0'
+    document.cookie = 'akses_rahasia=; path=/; max-age=0'
+
+    // Redirect ke Home
+    window.location.href = '/'
+>>>>>>> 7a142fd8f98bfddb0482494a5976b1d41b56a515
   }
 
   // --- TAMPILAN KHUSUS HALAMAN LOGIN ---
@@ -81,7 +106,12 @@ export default function AdminLayout({
     return <main className="min-h-screen bg-background">{children}</main>
   }
 
+<<<<<<< HEAD
   // --- LOADING STATE ---
+=======
+  // --- TAMPILAN ADMIN PANEL (DENGAN SIDEBAR) ---
+
+>>>>>>> 7a142fd8f98bfddb0482494a5976b1d41b56a515
   if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
