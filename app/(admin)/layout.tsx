@@ -1,4 +1,3 @@
-// src/app/(admin)/layout.tsx
 'use client'
 
 import { usePathname } from 'next/navigation';
@@ -13,16 +12,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter()
-  const pathname = usePathname() // Ambil URL sekarang
+  const pathname = usePathname()
   const [isAuth, setIsAuth] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Cek apakah user sedang berada di halaman login
-  // Sesuaikan '/login' ini dengan URL halaman login admin kamu
-  const isLoginPage = pathname === '/login'; 
+  // PASTIKAN INI SESUAI dengan URL login kamu di browser.
+  // Kalau URL loginmu adalah localhost:3000/login, biarkan '/login'.
+  // Kalau URL loginmu localhost:3000/admin-login, ganti jadi '/admin-login'.
+  const isLoginPage = pathname === '/login' || pathname === '/admin-login'; 
 
   useEffect(() => {
-    // Kalo lagi di halaman Login, STOP! Jangan cek auth, biarkan user ngetik password.
+    // Kalau sedang di halaman login, tidak perlu cek auth
     if (isLoginPage) {
         setIsLoading(false);
         return;
@@ -30,14 +30,26 @@ export default function AdminLayout({
 
     const checkAuth = async () => {
       try {
-        const res = await fetch('/api/admin/check-auth')
+        // --- PERBAIKAN UTAMA DI SINI ---
+        // Tambahkan { credentials: 'include' } agar cookie admin_token terbawa
+        const res = await fetch('/api/admin/check-auth', {
+            method: 'GET',
+            credentials: 'include', // <--- INI KUNCI RAHASIANYA
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        
         if (res.ok) {
           setIsAuth(true)
         } else {
-          router.push('/login') // Lempar ke login kalau belum auth
+          // Token tidak valid/expired
+          console.log("Auth check failed (401), redirecting to login...")
+          router.push('/login') 
         }
       } catch (e) {
-        console.error('Auth check failed', e)
+        console.error('Auth check error (Network/Server down)', e)
+        // Jangan langsung redirect jika error jaringan, tapi opsional:
         router.push('/login')
       } finally {
         setIsLoading(false)
@@ -47,30 +59,47 @@ export default function AdminLayout({
     checkAuth()
   }, [router, isLoginPage])
 
-  const handleLogout = () => {
-    document.cookie = 'admin_token=; path=/; max-age=0'
-    router.push('/login')
+  const handleLogout = async () => {
+    try {
+        // Panggil API Logout supaya server menghapus cookie juga
+        await fetch('/api/admin/logout', { method: 'POST' });
+        
+        // Hapus cookie di client secara paksa (untuk jaga-jaga)
+        document.cookie = 'admin_token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        
+        router.push('/login')
+        router.refresh()
+    } catch (error) {
+        console.error("Logout error", error);
+        // Tetap paksa keluar
+        router.push('/login');
+    }
   }
 
   // --- TAMPILAN KHUSUS HALAMAN LOGIN ---
-  // Kalau ini halaman login, tampilkan POLOSAN (tanpa Sidebar)
   if (isLoginPage) {
     return <main className="min-h-screen bg-background">{children}</main>
   }
 
-  // --- TAMPILAN ADMIN PANEL (DENGAN SIDEBAR) ---
-  
+  // --- LOADING STATE ---
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return (
+        <div className="flex items-center justify-center min-h-screen bg-background text-foreground">
+            <p>Verifying Access...</p>
+        </div>
+    )
   }
 
+  // --- PROTEKSI ---
+  // Jika loading selesai tapi tidak auth, return null (karena useEffect akan redirect)
   if (!isAuth) {
     return null
   }
 
+  // --- TAMPILAN DASHBOARD ---
   return (
     <div className="flex min-h-screen bg-background">
-      {/* SIDEBAR (Hanya muncul kalau BUKAN halaman login) */}
+      {/* SIDEBAR */}
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex-shrink-0 hidden md:block border-r border-sidebar-border/40">
         <div className="p-6 border-b border-sidebar-border/20 flex items-center gap-3">
           <div className="w-8 h-8 premium-gradient rounded-full flex items-center justify-center font-bold text-white shadow-md">
@@ -80,6 +109,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="mt-6 px-4 space-y-2 flex flex-col h-[calc(100vh-120px)]">
+          {/* PERHATIKAN HREF INI: Pastikan route '/admin/products' memang ada */}
           <Link href="/admin/products" className="flex items-center gap-3 px-4 py-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-colors">
             <Package size={20} />
             <span>Kelola Produk</span>
