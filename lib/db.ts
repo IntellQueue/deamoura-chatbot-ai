@@ -11,7 +11,10 @@ const pool = mysql.createPool({
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0,
+  connectTimeout: 30000 // 30s timeout
 });
 
 export default pool;
@@ -20,7 +23,7 @@ export default pool;
 // Ini PENTING agar varian/warna terbaca sebagai Array di frontend, bukan String
 function parseProduct(product: any) {
   if (!product) return null;
-  
+
   // Helper kecil untuk parse aman
   const safeParse = (data: any) => {
     if (Array.isArray(data)) return data; // Sudah array
@@ -38,17 +41,17 @@ function parseProduct(product: any) {
     ...product,
     isActive: !!product.isActive,     // Convert 1/0 ke true/false
     isFeatured: !!product.isFeatured, // Convert 1/0 ke true/false
-    
+
     // Parse kolom JSON
     materials: safeParse(product.materials),
     colors: safeParse(product.colors),
     variants: safeParse(product.variants),
-    
+
     // Struktur kategori nested (biar frontend ga perlu ubah kodingan)
-    category: product.categoryId ? { 
-      id: product.categoryId, 
-      name: product.categoryName, 
-      slug: product.categorySlug 
+    category: product.categoryId ? {
+      id: product.categoryId,
+      name: product.categoryName,
+      slug: product.categorySlug
     } : null
   };
 }
@@ -58,8 +61,8 @@ function parseProduct(product: any) {
 export async function getAllProductsAdmin() {
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     ORDER BY p.createdAt DESC
   `);
   return (rows as any[]).map(parseProduct);
@@ -68,8 +71,8 @@ export async function getAllProductsAdmin() {
 export async function getProducts() {
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     WHERE p.isActive = 1 
     ORDER BY p.createdAt DESC
   `);
@@ -79,8 +82,8 @@ export async function getProducts() {
 export async function getFeaturedProducts() {
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     WHERE p.isActive = 1 AND p.isFeatured = 1 
     ORDER BY p.createdAt DESC 
     LIMIT 8
@@ -91,8 +94,8 @@ export async function getFeaturedProducts() {
 export async function getProductBySlug(slug: string) {
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     WHERE p.slug = ? AND p.isActive = 1
   `, [slug]);
 
@@ -104,8 +107,8 @@ export async function getProductBySlug(slug: string) {
 export async function getProductById(id: number) {
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     WHERE p.id = ?
   `, [id]);
 
@@ -113,13 +116,25 @@ export async function getProductById(id: number) {
   return parseProduct(product);
 }
 
+export async function getRandomProducts() {
+  const [rows] = await pool.execute(`
+    SELECT p.*, c.name as categoryName, c.slug as categorySlug 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
+    WHERE p.isActive = 1 
+    ORDER BY RAND() 
+    LIMIT 3
+  `);
+  return (rows as any[]).map(parseProduct);
+}
+
 export async function searchProducts(query: string) {
   if (!query) return [];
   const searchTerm = `%${query}%`;
   const [rows] = await pool.execute(`
     SELECT p.*, c.name as categoryName, c.slug as categorySlug 
-    FROM Product p 
-    LEFT JOIN Category c ON p.categoryId = c.id 
+    FROM product p 
+    LEFT JOIN category c ON p.categoryId = c.id 
     WHERE p.isActive = 1 AND (p.name LIKE ? OR p.description LIKE ? OR c.name LIKE ?)
     LIMIT 3
   `, [searchTerm, searchTerm, searchTerm]);
@@ -129,7 +144,7 @@ export async function searchProducts(query: string) {
 
 // --- Category Queries ---
 export async function getCategories() {
-  const [rows] = await pool.execute('SELECT * FROM Category ORDER BY name ASC');
+  const [rows] = await pool.execute('SELECT * FROM category ORDER BY name ASC');
   return rows as any[];
 }
 
@@ -137,7 +152,7 @@ export async function searchCategories(query: string) {
   if (!query) return [];
   const searchTerm = `%${query}%`;
   const [rows] = await pool.execute(`
-    SELECT * FROM Category 
+    SELECT * FROM category 
     WHERE name LIKE ? OR description LIKE ? 
     LIMIT 2
   `, [searchTerm, searchTerm]);
@@ -149,7 +164,7 @@ export async function getFAQ(query: string) {
   if (!query) return [];
   const searchTerm = `%${query}%`;
   const [rows] = await pool.execute(`
-    SELECT * FROM Faq 
+    SELECT * FROM faq 
     WHERE isActive = 1 AND (question LIKE ? OR answer LIKE ?) 
     LIMIT 2
   `, [searchTerm, searchTerm]);
@@ -161,7 +176,7 @@ export async function createProduct(data: any) {
   const { name, slug, description, price, stock, imageUrl, marketplaceUrl, isActive, isFeatured, categoryId, materials, colors, variants } = data;
 
   const [result] = await pool.execute(`
-    INSERT INTO Product 
+    INSERT INTO product 
     (name, slug, description, price, stock, imageUrl, marketplaceUrl, isActive, isFeatured, categoryId, materials, colors, variants)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `, [
@@ -198,7 +213,7 @@ export async function updateProduct(id: number, data: any) {
       fields.push(`${key} = ?`);
       // Pastikan stringify, dan handle null
       values.push(value === null ? '[]' : JSON.stringify(value));
-    } 
+    }
     // Handle Boolean Fields (MySQL pakai 1/0)
     else if (['isActive', 'isFeatured'].includes(key)) {
       fields.push(`${key} = ?`);
@@ -215,12 +230,12 @@ export async function updateProduct(id: number, data: any) {
 
   values.push(id); // Untuk WHERE id = ?
 
-  await pool.execute(`UPDATE Product SET ${fields.join(', ')} WHERE id = ?`, values);
+  await pool.execute(`UPDATE product SET ${fields.join(', ')} WHERE id = ?`, values);
   return getProductById(id);
 }
 
 export async function deleteProduct(id: number) {
-  await pool.execute('DELETE FROM Product WHERE id = ?', [id]);
+  await pool.execute('DELETE FROM product WHERE id = ?', [id]);
   return { id };
 }
 
@@ -228,14 +243,14 @@ export async function deleteProduct(id: number) {
 export async function createAdmin(email: string, password: string, name?: string) {
   const passwordHash = await bcrypt.hash(password, 10);
   const [result] = await pool.execute(
-    'INSERT INTO Admin (email, passwordHash, name) VALUES (?, ?, ?)',
+    'INSERT INTO admin (email, passwordHash, name) VALUES (?, ?, ?)',
     [email, passwordHash, name]
   );
   return { id: (result as any).insertId, email, name };
 }
 
 export async function findAdminByEmail(email: string) {
-  const [rows] = await pool.execute('SELECT * FROM Admin WHERE email = ?', [email]);
+  const [rows] = await pool.execute('SELECT * FROM admin WHERE email = ?', [email]);
   return (rows as any[])[0] || null;
 }
 

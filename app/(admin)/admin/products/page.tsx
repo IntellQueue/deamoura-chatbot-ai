@@ -69,7 +69,7 @@ export default function ProductListPage() {
         </div>
 
         <Link
-          href="/admin/products/add"
+          href="/d033e22ae348aeb5660fc2140aec35850c4da997/products/add"
           className="premium-gradient hover:shadow-lg text-white px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium transition-all"
         >
           <Plus size={18} />
@@ -115,7 +115,7 @@ export default function ProductListPage() {
                   <td className="px-6 py-4 text-muted-foreground">{product.stock} pcs</td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Link href={`/admin/products/${product.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                      <Link href={`/d033e22ae348aeb5660fc2140aec35850c4da997/products/${product.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
                         <Pencil size={16} />
                       </Link>
                       <button

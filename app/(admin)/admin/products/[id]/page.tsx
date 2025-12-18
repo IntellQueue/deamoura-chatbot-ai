@@ -2,7 +2,7 @@
 "use client";
 
 import { NextResponse } from "next/server";
-import  pool from "@/lib/db";
+import pool from "@/lib/db";
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ArrowLeft, Save, Trash2, Upload, Plus, Image as ImageIcon, X } from 'lucide-react';
@@ -37,7 +37,7 @@ export default function EditProductPage() {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
-    category: '', 
+    category: '',
     price: '',
     stock: '',
     description: '',
@@ -58,7 +58,7 @@ export default function EditProductPage() {
     const id = pathParts[pathParts.length - 1];
 
     if (!id || isNaN(parseInt(id))) {
-      router.push('/admin/products');
+      router.push('/d033e22ae348aeb5660fc2140aec35850c4da997/products');
       return;
     }
 
@@ -72,7 +72,7 @@ export default function EditProductPage() {
         const data = await res.json();
 
         setMainImage(data.image || '');
-        
+
         setFormData({
           name: data.name || '',
           slug: data.slug || '',
@@ -101,7 +101,7 @@ export default function EditProductPage() {
       } catch (error) {
         console.error('Failed to fetch product:', error);
         alert('Gagal memuat produk');
-        router.push('/admin/products');
+        router.push('/d033e22ae348aeb5660fc2140aec35850c4da997/products');
       } finally {
         setIsLoading(false);
       }
@@ -174,14 +174,14 @@ export default function EditProductPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    
+
     if (name === 'name') {
       // LOGIC PINTAR:
       // Kalau user ngetik "Nama", kita update Nama DAN generate Slug baru otomatis.
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         name: value,
-        slug: generateSlug(value) 
+        slug: generateSlug(value)
       }));
     } else {
       // Kalau user ngetik di kolom "Slug" (atau field lain), kita update field itu saja.
@@ -202,7 +202,7 @@ export default function EditProductPage() {
     try {
       const imageBase64 = mainImage.startsWith('http') || mainImage.startsWith('/')
         ? mainImage
-        : mainImage; 
+        : mainImage;
 
       const colors = variants.map(v => v.name);
 
@@ -212,15 +212,15 @@ export default function EditProductPage() {
         body: JSON.stringify({
           name: formData.name,
           slug: formData.slug,
-          
+
           // Kirim ID Kategori (Angka)
           categoryId: formData.category ? parseInt(formData.category) : null,
-          
+
           price: parseFloat(formData.price),
           stock: parseInt(formData.stock) || 0,
           description: formData.description,
           marketplaceUrl: formData.marketplaceUrl,
-          
+
           imageBase64: imageBase64,
           variants: variants,
           materials: colors,
@@ -235,7 +235,7 @@ export default function EditProductPage() {
       }
 
       alert("Produk berhasil diperbarui!");
-      router.push('/admin/products');
+      router.push('/d033e22ae348aeb5660fc2140aec35850c4da997/products');
       router.refresh();
     } catch (error) {
       console.error('Error updating product:', error);
@@ -261,7 +261,7 @@ export default function EditProductPage() {
         }
 
         alert("Produk berhasil dihapus!");
-        router.push('/admin/products');
+        router.push('/d033e22ae348aeb5660fc2140aec35850c4da997/products');
         router.refresh();
       } catch (error) {
         console.error('Error deleting product:', error);
@@ -276,7 +276,7 @@ export default function EditProductPage() {
     <div className="max-w-7xl mx-auto pb-10 px-4">
       <div className="flex items-center gap-4 mb-6">
         <Link
-          href="/admin/products"
+          href="/d033e22ae348aeb5660fc2140aec35850c4da997/products"
           className="p-2 bg-white border border-classik/20 rounded-lg hover:bg-muted transition-colors"
         >
           <ArrowLeft size={20} className="text-muted-foreground" />

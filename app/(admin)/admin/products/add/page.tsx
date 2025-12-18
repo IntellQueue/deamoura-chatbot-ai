@@ -30,7 +30,7 @@ export default function AddProductPage() {
   })
 
   const [variants, setVariants] = useState<ProductVariant[]>([])
-  
+
   useEffect(() => {
     fetch('/api/categories')
       .then(res => res.json())
@@ -124,14 +124,14 @@ export default function AddProductPage() {
           description: formData.description,
           price: formData.price,
           stock: formData.stock,
-          
+
           // 5. UBAH BAGIAN INI: Convert string ke Int
           categoryId: formData.category ? parseInt(formData.category) : null,
-          
+
           materials: variants.map(v => v.name),
           colors: colors,
           imageBase64: mainImage,
-          variants: variants, 
+          variants: variants,
           marketplaceUrl: formData.marketplaceUrl,
           isActive: true,
           isFeatured: false
@@ -146,7 +146,7 @@ export default function AddProductPage() {
       }
 
       alert("Produk berhasil ditambahkan!")
-      router.push('/admin/products')
+      router.push('/d033e22ae348aeb5660fc2140aec35850c4da997/products')
     } catch (error) {
       console.error('Submit error:', error)
       alert("Terjadi error saat menyimpan produk")
@@ -157,7 +157,7 @@ export default function AddProductPage() {
   return (
     <div className="max-w-7xl mx-auto pb-10 px-4">
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/admin/products" className="p-2 bg-white border border-classik/20 rounded-lg hover:bg-muted transition-colors">
+        <Link href="/d033e22ae348aeb5660fc2140aec35850c4da997/products" className="p-2 bg-white border border-classik/20 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft size={20} className="text-muted-foreground" />
         </Link>
         <div>
@@ -259,13 +259,13 @@ export default function AddProductPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground/80 mb-2">Kategori</label>
-                
+
                 {/* 6. UBAH SELECT INI */}
-                <select 
-                  name="category" 
-                  value={formData.category} 
-                  onChange={handleChange} 
-                  className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-ring outline-none bg-white transition-all" 
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-background border border-input rounded-xl focus:ring-2 focus:ring-ring outline-none bg-white transition-all"
                   required
                 >
                   <option value="">Pilih Kategori</option>

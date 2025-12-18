@@ -99,8 +99,12 @@ export default function AdminLayout({
         </div>
 
         <nav className="mt-6 px-4 space-y-2 flex flex-col h-[calc(100vh-120px)]">
+<<<<<<< HEAD
           {/* PERHATIKAN HREF INI: Pastikan route '/admin/products' memang ada */}
           <Link href="/admin/products" className="flex items-center gap-3 px-4 py-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-colors">
+=======
+          <Link href="/d033e22ae348aeb5660fc2140aec35850c4da997/products" className="flex items-center gap-3 px-4 py-3 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-lg transition-colors">
+>>>>>>> 7e2e2c2cceca67ae2a9dd87684efc1961e5fba57
             <Package size={20} />
             <span>Kelola Produk</span>
           </Link>

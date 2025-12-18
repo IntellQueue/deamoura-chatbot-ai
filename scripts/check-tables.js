@@ -21,7 +21,7 @@ async function checkTables() {
             console.log('✅ Table "Product" exists.');
 
             // Optional: Check row count
-            const [countRows] = await connection.execute("SELECT COUNT(*) as count FROM Product");
+            const [countRows] = await connection.execute("SELECT COUNT(*) as count FROM product");
             console.log(`📊 Product count: ${countRows[0].count}`);
         } else {
             console.log('❌ Table "Product" DOES NOT exist.');
